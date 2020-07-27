@@ -21,7 +21,6 @@
 #include <k_api.h>
 #include <time.h>
 #include <ucontext.h>
-#include <sys/syscall.h>
 
 #ifdef HAVE_VALGRIND_H
 #include <valgrind.h>
@@ -98,10 +97,17 @@ typedef struct {
     cpu_event_t event;
 } cpu_event_internal_t;
 
+/*
+ *  The gettid() library support was added in glibc 2.30.
+ */
+#if !defined(__GLIBC__) || __GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 30)
+#include <sys/syscall.h>
+
 static pid_t gettid(void)
 {
     return syscall(SYS_gettid);
 }
+#endif
 
 void syscall_error_label(void)
 {
